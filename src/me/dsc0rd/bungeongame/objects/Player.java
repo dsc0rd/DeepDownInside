@@ -56,7 +56,6 @@ public class Player extends Unit {
         }
         GameplayState.units.add(this);
         this.equippedWeapons.add(Weaponry.pistol);
-        this.equippedWeapons.add(new BasicWeapon(10, 1, 4, 700, 120, 0.1, 4, 40, 400, 0.01));
         this.components.put(this.upComponent, false);
         this.components.put(this.downComponent, false);
         this.components.put(this.leftComponent, false);
