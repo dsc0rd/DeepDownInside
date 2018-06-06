@@ -5,6 +5,8 @@ import me.dsc0rd.bungeongame.objects.Unit;
 public interface Weapon {
 
 
+    WeaponTypeEnum getWeaponType();
+
     void shoot(Unit owner, double angle) throws CloneNotSupportedException;
 
     void reload();
@@ -62,6 +64,8 @@ public interface Weapon {
     void setSpread(double spread);
 
     double getReloadTimer();
+
+    double getShotTimer();
 
 
 }

@@ -35,11 +35,9 @@ public class GameplayState extends BasicGameState {
 
     @Override
     public void init(GameContainer container, StateBasedGame game) throws SlickException {
-
         gc = container;
         container.getGraphics().setAntiAlias(false);
         player.init();
-//        player.updateFaceAngle(container.getInput().getMouseX(), container.getInput().getMouseY());
         bullets.clear();
     }
 
@@ -49,7 +47,6 @@ public class GameplayState extends BasicGameState {
         g.pushTransform();
         g.translate(camera.offsetX, camera.offsetY);
         for (Unit u : units) {
-
             u.render(g);
         }
         for (BasicWeapon.Bullet b : bullets) {
@@ -98,11 +95,23 @@ public class GameplayState extends BasicGameState {
 
     @Override
     public void mouseClicked(int button, int x, int y, int clickCount) {
-        try {
-            player.acceptMouseInput(button, x, y, clickCount);
-        } catch (CloneNotSupportedException e) {
-            e.printStackTrace();
-        }
+//        try {
+////            player.acceptMouseInput(button, x, y, clickCount);
+//        } catch (CloneNotSupportedException e) {
+//            e.printStackTrace();
+//        }
+    }
+
+    @Override
+    public void mousePressed(int button, int x, int y) {
+        if (!paused)
+            player.acceptInput(button, '.', 0);
+    }
+
+    @Override
+    public void mouseReleased(int button, int x, int y) {
+        if (!paused)
+            player.acceptInput(button, '.', 1);
     }
 
     @Override

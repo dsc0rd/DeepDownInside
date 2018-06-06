@@ -12,15 +12,19 @@ import org.newdawn.slick.Graphics;
 public class BasicWeapon implements Weapon {
 
 
+    private WeaponTypeEnum weaponType;
     private double projectileAmount;
     private double length, damage, bulletSpeed, bulletLifetime, timeBetweenShots, reloadTime, clipAmmo, clipMaxAmmo, ammo, maxAmmo;
     private double spread;
+
+    private Color bulletColor;
 
     private double shotTimer = 0, reloadTimer = 0;
     boolean reloading = false;
 
 
-    public BasicWeapon(double weaponLength, double projectileAmount, double damage, double bulletSpeed, double bulletLifetime, double timeBetweenShots, double reloadTime, double clipMaxAmmo, double maxAmmo, double spread) {
+    public BasicWeapon(WeaponTypeEnum type, double weaponLength, double projectileAmount, double damage, double bulletSpeed, double bulletLifetime, double timeBetweenShots, double reloadTime, double clipMaxAmmo, double maxAmmo, double spread, Color bulletColor) {
+        this.weaponType = type;
         this.length = weaponLength;
         this.projectileAmount = projectileAmount;
         this.damage = damage;
@@ -33,6 +37,12 @@ public class BasicWeapon implements Weapon {
         this.maxAmmo = maxAmmo;
         this.ammo = this.maxAmmo;
         this.spread = spread;
+        this.bulletColor = bulletColor;
+    }
+
+    @Override
+    public WeaponTypeEnum getWeaponType() {
+        return this.weaponType;
     }
 
     @Override
@@ -67,8 +77,8 @@ public class BasicWeapon implements Weapon {
             this.reloadTimer -= dt;
         if (this.reloadTimer < 0) {
             this.ammo = this.ammo - (this.clipMaxAmmo - this.clipAmmo);
+            this.clipAmmo = this.ammo > this.clipMaxAmmo ? this.clipMaxAmmo : this.ammo;
             this.ammo = this.ammo > 0 ? this.ammo : 0;
-            this.clipAmmo = this.clipMaxAmmo;
             this.reloadTimer = 0;
             this.reloading = false;
         }
@@ -83,9 +93,9 @@ public class BasicWeapon implements Weapon {
         if (this.reloadTimer > 0)
             return;
         this.reloadTimer = this.reloadTime;
+        this.shotTimer = this.reloadTimer;
         this.reloading = true;
         // WAIT FOR A PERIOD OF TIME THEN DO
-
     }
 
     public String getName() {
@@ -194,6 +204,11 @@ public class BasicWeapon implements Weapon {
         return this.reloadTimer;
     }
 
+    @Override
+    public double getShotTimer() {
+        return this.shotTimer;
+    }
+
     public class Bullet implements MovableObject {
 
         double damage;
@@ -225,8 +240,8 @@ public class BasicWeapon implements Weapon {
         }
 
         public void render(Graphics g) {
-            g.setColor(Color.red);
-            g.drawOval((float) (this.position.getX() - (this.getRadius() / 2)), (float) (this.position.getY() - (this.getRadius() / 2)), (float) this.getRadius(), (float) this.getRadius());
+            g.setColor(bulletColor);
+            g.fillOval((float) (this.position.getX() - (this.getRadius() / 2)), (float) (this.position.getY() - (this.getRadius() / 2)), (float) this.getRadius(), (float) this.getRadius());
         }
 
 
@@ -310,14 +325,13 @@ public class BasicWeapon implements Weapon {
         }
 
         public void triggerEvents(EventEnum[] events) {
-            for (EventEnum e : events
-                    ) {
+            for (EventEnum e : events) {
                 triggerEvent(e);
             }
         }
 
         public Unit getOwner() {
-            return owner;
+            return this.owner;
         }
 
         public Bullet reposition(double x, double y, double z) {

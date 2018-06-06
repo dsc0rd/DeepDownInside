@@ -3,8 +3,8 @@ package me.dsc0rd.bungeongame.objects;
 import me.dsc0rd.bungeongame.Main;
 import me.dsc0rd.bungeongame.logic.MathUtils;
 import me.dsc0rd.bungeongame.logic.Vector3;
-import me.dsc0rd.bungeongame.objects.Items.weapons.BasicWeapon;
 import me.dsc0rd.bungeongame.objects.Items.weapons.Weapon;
+import me.dsc0rd.bungeongame.objects.Items.weapons.WeaponTypeEnum;
 import me.dsc0rd.bungeongame.objects.Items.weapons.Weaponry;
 import me.dsc0rd.bungeongame.states.GameplayState;
 import org.newdawn.slick.Color;
@@ -34,6 +34,8 @@ public class Player extends Unit {
 
     private double angle = 0;
 
+    private boolean isShooting = false;
+
     public Player(double x, double y, double z, double movementSpeed) {
         super(6, x, y, z, 20);
         this.components = new Hashtable<>();
@@ -56,6 +58,7 @@ public class Player extends Unit {
         }
         GameplayState.units.add(this);
         this.equippedWeapons.add(Weaponry.pistol);
+        this.equippedWeapons.add(Weaponry.autoRifle);
         this.components.put(this.upComponent, false);
         this.components.put(this.downComponent, false);
         this.components.put(this.leftComponent, false);
@@ -95,6 +98,8 @@ public class Player extends Unit {
             }
 
         }
+        if (this.isShooting&&getCurrentWeapon().getShotTimer() <= 0)
+            shoot();
         super.update(dt);
     }
 
@@ -111,6 +116,17 @@ public class Player extends Unit {
         switch (type) {
             case 0:
                 switch (key) {
+                    case Input.MOUSE_LEFT_BUTTON:
+                        if (getCurrentWeapon().getWeaponType().equals(WeaponTypeEnum.Auto)) {
+                            this.isShooting = true;
+                        } else {
+                            try {
+                                shoot();
+                            } catch (CloneNotSupportedException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        break;
                     case Input.KEY_W:
                         this.components.replace(this.upComponent, true);
                         this.components.replace(this.downComponent, false);
@@ -169,6 +185,9 @@ public class Player extends Unit {
                         if (Main.debug)
                             this.init();
                         break;
+                    case Input.MOUSE_LEFT_BUTTON:
+                        this.isShooting = false;
+                        break;
                 }
                 break;
             default:
@@ -180,22 +199,24 @@ public class Player extends Unit {
 
 
     public void updateFaceAngle(double x, double y) {
-//        this.angle = MathUtils.getAngleOfLineBetweenTwoPoints(this.position.getX(), this.position.getY(), x, y);
         this.angle = MathUtils.getAngleOfLineBetweenTwoPoints(Main.width / 2, Main.height / 2, x, y);
     }
 
-    public void acceptMouseInput(int button, double x, double y, int clickCount) throws CloneNotSupportedException {
-        switch (button) {
-            case 0://LEFT CLICK
-                shoot();
-                break;
-            case 1:
-                break;
-        }
-    }
+//    public void acceptMouseInput(int button, double x, double y, int ) throws CloneNotSupportedException {
+////        switch (button) {
+////            case 0://LEFT CLICK
+////                shoot();
+////                break;
+////            case 1:
+////                break;
+////        }
+//    }
 
     private void shoot() throws CloneNotSupportedException {
         getCurrentWeapon().shoot(this, angle);
+        if (getCurrentWeapon().getWeaponType().equals(WeaponTypeEnum.Auto)) {
+            isShooting = true;
+        }
     }
 
     public Weapon getCurrentWeapon() {
@@ -204,6 +225,7 @@ public class Player extends Unit {
 
     public void nextWeapon() {
         equippedWeaponIndex = equippedWeaponIndex + 1 >= equippedWeapons.size() ? 0 : equippedWeaponIndex + 1;
+        this.isShooting = false;
     }
 
 }
