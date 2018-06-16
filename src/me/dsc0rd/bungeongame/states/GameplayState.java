@@ -6,6 +6,7 @@ import me.dsc0rd.bungeongame.objects.Camera;
 import me.dsc0rd.bungeongame.objects.Items.weapons.BasicWeapon;
 import me.dsc0rd.bungeongame.objects.Player;
 import me.dsc0rd.bungeongame.objects.Unit;
+import me.dsc0rd.bungeongame.objects.enviroment.Level;
 import org.newdawn.slick.*;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
@@ -18,6 +19,7 @@ public class GameplayState extends BasicGameState {
     public static GameContainer gc;
     boolean paused = false;
     String dt = "";
+    private Level level;
     private Player player = new Player(500, 400, 0.1, 1.6);
     private Unit dummy = new Unit(80, 200, 400, 0.1, 20);
     private Camera camera = new Camera(player);
@@ -39,6 +41,9 @@ public class GameplayState extends BasicGameState {
         container.getGraphics().setAntiAlias(false);
         player.init();
         bullets.clear();
+
+
+        level = new Level(4, 4);
     }
 
     @Override
@@ -46,6 +51,7 @@ public class GameplayState extends BasicGameState {
         g.clear();
         g.pushTransform();
         g.translate(camera.offsetX, camera.offsetY);
+        level.render(g);
         for (Unit u : units) {
             u.render(g);
         }
@@ -59,6 +65,7 @@ public class GameplayState extends BasicGameState {
 
     @Override
     public void update(GameContainer container, StateBasedGame game, int delta) throws SlickException {
+        level.update((float) (delta / 1000));
         camera.update((float) delta / 1000, container.getInput());
         dt = String.valueOf((float) delta / 1000);
         if (paused)

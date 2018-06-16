@@ -27,13 +27,7 @@ public class Player extends Unit {
     private ArrayList<Weapon> equippedWeapons = new ArrayList<>();
 
     private int equippedWeaponIndex = 0;
-
-    public double getAngle() {
-        return angle;
-    }
-
     private double angle = 0;
-
     private boolean isShooting = false;
 
     public Player(double x, double y, double z, double movementSpeed) {
@@ -41,6 +35,10 @@ public class Player extends Unit {
         this.components = new Hashtable<>();
         this.movementSpeed = movementSpeed;
         this.init();
+    }
+
+    public double getAngle() {
+        return angle;
     }
 
     public void init() {
@@ -58,6 +56,8 @@ public class Player extends Unit {
         }
         GameplayState.units.add(this);
         this.equippedWeapons.add(Weaponry.pistol);
+        this.equippedWeapons.add(Weaponry.shotgun);
+        this.equippedWeapons.add(Weaponry.sawedOffShotgun);
         this.equippedWeapons.add(Weaponry.autoRifle);
         this.components.put(this.upComponent, false);
         this.components.put(this.downComponent, false);
@@ -96,20 +96,17 @@ public class Player extends Unit {
                     this.velocity.setX(0);
                 }
             }
-
         }
-        if (this.isShooting&&getCurrentWeapon().getShotTimer() <= 0)
+        if (this.isShooting && getCurrentWeapon().getShotTimer() <= 0)
             shoot();
         super.update(dt);
     }
 
     @Override
     public void render(Graphics graphics) {
-        graphics.setColor(Color.red);
+        graphics.setColor(Color.pink);
         graphics.drawOval((float) (this.position.getX() - (this.radius / 2)), (float) (this.position.getY() - (this.radius / 2)), (float) this.radius, (float) this.radius);
-        graphics.setColor(Color.red);
         graphics.drawLine((float) this.position.getX(), (float) this.position.getY(), (float) (this.position.getX() + (this.getCurrentWeapon().getLength() * 4 * Math.cos(this.angle))), (float) (this.position.getY() + (this.getCurrentWeapon().getLength() * 4 * Math.sin(this.angle))));
-
     }
 
     public void acceptInput(int key, char c, int type) {

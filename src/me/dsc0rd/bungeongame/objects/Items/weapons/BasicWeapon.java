@@ -12,18 +12,18 @@ import org.newdawn.slick.Graphics;
 public class BasicWeapon implements Weapon {
 
 
+    boolean reloading = false;
+    String name = "";
     private WeaponTypeEnum weaponType;
     private double projectileAmount;
     private double length, damage, bulletSpeed, bulletLifetime, timeBetweenShots, reloadTime, clipAmmo, clipMaxAmmo, ammo, maxAmmo;
     private double spread;
-
     private Color bulletColor;
-
     private double shotTimer = 0, reloadTimer = 0;
-    boolean reloading = false;
 
 
-    public BasicWeapon(WeaponTypeEnum type, double weaponLength, double projectileAmount, double damage, double bulletSpeed, double bulletLifetime, double timeBetweenShots, double reloadTime, double clipMaxAmmo, double maxAmmo, double spread, Color bulletColor) {
+    public BasicWeapon(String name, WeaponTypeEnum type, double weaponLength, double projectileAmount, double damage, double bulletSpeed, double bulletLifetime, double timeBetweenShots, double reloadTime, double clipMaxAmmo, double maxAmmo, double spread, Color bulletColor) {
+        this.name = name;
         this.weaponType = type;
         this.length = weaponLength;
         this.projectileAmount = projectileAmount;
@@ -59,7 +59,7 @@ public class BasicWeapon implements Weapon {
             new Bullet(owner, this.damage, bulletSpeed)
                     .translate(
                             (this.length + (owner.getRadius() / 2)) * Math.cos(angle + spreadAngle), (this.length + (owner.getRadius() / 2)) * Math.sin(angle + spreadAngle),
-                            bulletLifetime / 10
+                            bulletLifetime / 24
                     )
                     .accelerate(bulletSpeed, (angle + spreadAngle))
                     .accelerate(0, 0, -0.001);
@@ -99,7 +99,7 @@ public class BasicWeapon implements Weapon {
     }
 
     public String getName() {
-        return "SemiAutomaticWeapon";
+        return this.name;
     }
 
 
@@ -211,14 +211,13 @@ public class BasicWeapon implements Weapon {
 
     public class Bullet implements MovableObject {
 
-        double damage;
-
         protected Vector3 position;
-        private Vector3 acceleration;
-        private Vector3 velocity;
+        double damage;
         Unit owner;
         double speedMultiplier = 1, bulletSpeed;
         double radius = 6;
+        private Vector3 acceleration;
+        private Vector3 velocity;
 
         public Bullet(Unit u, double damage, double bulletSpeed) throws CloneNotSupportedException {
             this.owner = u;
