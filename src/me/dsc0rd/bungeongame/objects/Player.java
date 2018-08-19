@@ -31,7 +31,7 @@ public class Player extends Unit {
     private boolean isShooting = false;
 
     public Player(double x, double y, double z, double movementSpeed) {
-        super(6, x, y, z, 20);
+        super(9, x, y, z, 20);
         this.components = new Hashtable<>();
         this.movementSpeed = movementSpeed;
         this.init();
@@ -55,10 +55,13 @@ public class Player extends Unit {
             return;
         }
         GameplayState.units.add(this);
+        if (Main.debug)
+            this.equippedWeapons.add(Weaponry.ultraSlowBulletWeaponTESTINGONLY);
         this.equippedWeapons.add(Weaponry.pistol);
         this.equippedWeapons.add(Weaponry.shotgun);
         this.equippedWeapons.add(Weaponry.sawedOffShotgun);
         this.equippedWeapons.add(Weaponry.autoRifle);
+        this.equippedWeapons.add(Weaponry.minigun);
         this.components.put(this.upComponent, false);
         this.components.put(this.downComponent, false);
         this.components.put(this.leftComponent, false);
@@ -105,8 +108,16 @@ public class Player extends Unit {
     @Override
     public void render(Graphics graphics) {
         graphics.setColor(Color.pink);
-        graphics.drawOval((float) (this.position.getX() - (this.radius / 2)), (float) (this.position.getY() - (this.radius / 2)), (float) this.radius, (float) this.radius);
+        graphics.drawOval((float) (this.position.getX() - (this.getRadius() / 2)), (float) (this.position.getY() - (this.getRadius() / 2)), (float) this.getRadius(), (float) this.getRadius());
         graphics.drawLine((float) this.position.getX(), (float) this.position.getY(), (float) (this.position.getX() + (this.getCurrentWeapon().getLength() * 4 * Math.cos(this.angle))), (float) (this.position.getY() + (this.getCurrentWeapon().getLength() * 4 * Math.sin(this.angle))));
+
+        if (this.getCurrentWeapon().isReloading()) {
+            graphics.setColor(Color.green);
+            graphics.fillRect((float) (this.position.getX() - 12), (float) (this.position.getY() - (this.getRadius() / 2) - 12), (float) (24 * (this.getCurrentWeapon().getReloadTimer() / this.getCurrentWeapon().getReloadTime())), 6);
+            graphics.setColor(Color.white);
+            graphics.drawRect((float) (this.position.getX() - 12), (float) (this.position.getY() - (this.getRadius() / 2) - 12), 24, 6);
+        }
+
     }
 
     public void acceptInput(int key, char c, int type) {

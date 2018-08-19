@@ -2,7 +2,7 @@ package me.dsc0rd.bungeongame.objects.Items.weapons;
 
 import org.newdawn.slick.Color;
 
-public class AutomaticWeapon extends BasicWeapon {
+public class AutomaticWeapon extends ProjectileBasedWeapon {
 
 
     public AutomaticWeapon(String name, WeaponTypeEnum type, double weaponLength, double projectileAmount, double damage, double bulletSpeed, double bulletLifetime, double timeBetweenShots, double reloadTime, double clipMaxAmmo, double maxAmmo, double spread, Color bulletColor) {

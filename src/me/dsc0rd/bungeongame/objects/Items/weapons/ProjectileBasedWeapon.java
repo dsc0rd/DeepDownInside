@@ -1,5 +1,6 @@
 package me.dsc0rd.bungeongame.objects.Items.weapons;
 
+import me.dsc0rd.bungeongame.Main;
 import me.dsc0rd.bungeongame.logic.EventEnum;
 import me.dsc0rd.bungeongame.logic.MathUtils;
 import me.dsc0rd.bungeongame.logic.Vector3;
@@ -9,7 +10,7 @@ import me.dsc0rd.bungeongame.states.GameplayState;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 
-public class BasicWeapon implements Weapon {
+public class ProjectileBasedWeapon implements Weapon {
 
 
     boolean reloading = false;
@@ -22,7 +23,7 @@ public class BasicWeapon implements Weapon {
     private double shotTimer = 0, reloadTimer = 0;
 
 
-    public BasicWeapon(String name, WeaponTypeEnum type, double weaponLength, double projectileAmount, double damage, double bulletSpeed, double bulletLifetime, double timeBetweenShots, double reloadTime, double clipMaxAmmo, double maxAmmo, double spread, Color bulletColor) {
+    public ProjectileBasedWeapon(String name, WeaponTypeEnum type, double weaponLength, double projectileAmount, double damage, double bulletSpeed, double bulletLifetime, double timeBetweenShots, double reloadTime, double clipMaxAmmo, double maxAmmo, double spread, Color bulletColor) {
         this.name = name;
         this.weaponType = type;
         this.length = weaponLength;
@@ -56,7 +57,7 @@ public class BasicWeapon implements Weapon {
             return;
         for (int i = 0; i < projectileAmount; i++) {
             double spreadAngle = Math.PI - (Math.PI - Math.toRadians(MathUtils.randomDouble(-spread, spread)));
-            new Bullet(owner, this.damage, bulletSpeed)
+            new Projectile(owner, this.damage, bulletSpeed)
                     .translate(
                             (this.length + (owner.getRadius() / 2)) * Math.cos(angle + spreadAngle), (this.length + (owner.getRadius() / 2)) * Math.sin(angle + spreadAngle),
                             bulletLifetime / 24
@@ -209,7 +210,12 @@ public class BasicWeapon implements Weapon {
         return this.shotTimer;
     }
 
-    public class Bullet implements MovableObject {
+    @Override
+    public boolean isReloading() {
+        return this.reloading;
+    }
+
+    public class Projectile implements MovableObject {
 
         protected Vector3 position;
         double damage;
@@ -217,23 +223,24 @@ public class BasicWeapon implements Weapon {
         double speedMultiplier = 1, bulletSpeed;
         double radius = 6;
         private Vector3 acceleration;
-        private Vector3 velocity;
+        private Vector3 velocity, dimensions;
 
-        public Bullet(Unit u, double damage, double bulletSpeed) throws CloneNotSupportedException {
+        public Projectile(Unit u, double damage, double bulletSpeed) throws CloneNotSupportedException {
             this.owner = u;
             this.damage = damage;
             this.position = u.position.clone();
             this.acceleration = new Vector3();
             this.velocity = new Vector3();
+            this.dimensions = new Vector3(radius, radius, 0);
             this.bulletSpeed = bulletSpeed;
-            GameplayState.bullets.add(Bullet.this);
+            GameplayState.bullets.add(Projectile.this);
         }
 
         public void update(float dt) throws CloneNotSupportedException {
             this.velocity.add(this.acceleration.scale(speedMultiplier, speedMultiplier, 1).scale(dt, dt, 1));
             this.position.add(this.velocity.max(bulletSpeed));
-            if (this.position.getZ() < 0.01) {
 
+            if (this.position.getZ() < 0.01) {
                 this.destroy();
             }
         }
@@ -241,25 +248,29 @@ public class BasicWeapon implements Weapon {
         public void render(Graphics g) {
             g.setColor(bulletColor);
             g.fillOval((float) (this.position.getX() - (this.getRadius() / 2)), (float) (this.position.getY() - (this.getRadius() / 2)), (float) this.getRadius(), (float) this.getRadius());
+            if (Main.debug) {
+                g.setColor(Color.white);
+                g.drawString("" + this.getPosition().getX() + ", " + this.getPosition().getY(), (float) this.getPosition().getX(), (float) this.getPosition().getY());
+            }
         }
 
 
-        public Bullet accelerate(double power, double angle) {
+        public Projectile accelerate(double power, double angle) {
             this.acceleration.add(new Vector3(power * Math.cos(angle), power * Math.sin(angle), 0));
             return this;
         }
 
-        public Bullet accelerate(double x, double y, double z) {
+        public Projectile accelerate(double x, double y, double z) {
             this.acceleration.add(new Vector3(x, y, z));
             return this;
         }
 
-        public Bullet translate(double x, double y) {
+        public Projectile translate(double x, double y) {
             this.position.add(new Vector3(x, y, 0));
             return this;
         }
 
-        public Bullet translate(double x, double y, double z) {
+        public Projectile translate(double x, double y, double z) {
             this.position.add(new Vector3(x, y, z));
             return this;
         }
@@ -290,6 +301,11 @@ public class BasicWeapon implements Weapon {
         @Override
         public Vector3 getVelocity() {
             return this.velocity;
+        }
+
+        @Override
+        public Vector3 getDimensions() {
+            return this.dimensions;
         }
 
         @Override
@@ -333,12 +349,12 @@ public class BasicWeapon implements Weapon {
             return this.owner;
         }
 
-        public Bullet reposition(double x, double y, double z) {
+        public Projectile reposition(double x, double y, double z) {
             this.position.add(new Vector3(x - this.position.getX(), y - this.position.getY(), z - this.position.getZ()));
             return this;
         }
 
-        public Bullet reposition(Vector3 target) {
+        public Projectile reposition(Vector3 target) {
             return this.reposition(target.getX(), target.getY(), target.getZ());
         }
     }

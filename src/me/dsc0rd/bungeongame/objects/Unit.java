@@ -11,12 +11,12 @@ public class Unit implements MovableObject {
     public Vector3 position;
     Vector3 acceleration;
     Vector3 velocity;
+    Vector3 dimensions;
+
     int health;
     double speedMultiplier = 1;
 
     double movementSpeed = 18;
-
-    double radius = 20;
 
 
     public Unit(int health, double x, double y, double z, double radius) {
@@ -24,7 +24,7 @@ public class Unit implements MovableObject {
         this.position = new Vector3(x, y, z);
         this.acceleration = new Vector3();
         this.velocity = new Vector3();
-        this.radius = radius;
+        this.dimensions = new Vector3(radius, radius, 0);
         GameplayState.units.add(this);
         if (Main.debug) {
             System.out.println("Added " + this.getClass() + " to unit list");
@@ -33,15 +33,11 @@ public class Unit implements MovableObject {
 
 
     public void update(float dt) throws CloneNotSupportedException {
-
         this.velocity.add(this.acceleration.scale(speedMultiplier, speedMultiplier, 1).scale(dt, dt, 1));
         this.position.add(this.velocity.max(movementSpeed));
-//        this.velocity.scale(0.99);
-
         if (this.health <= 0) {
             this.destroy();
         }
-
     }
 
 
@@ -70,13 +66,18 @@ public class Unit implements MovableObject {
     }
 
     @Override
+    public Vector3 getDimensions() {
+        return this.dimensions;
+    }
+
+    @Override
     public boolean isColliding(MovableObject o) {
-        return o.getPosition().inRadius(this.position, this.radius, o.getRadius());
+        return o.getPosition().inRadius(this.position, this.dimensions.getX(), o.getRadius());
     }
 
     @Override
     public double getRadius() {
-        return this.radius;
+        return this.dimensions.getX();
     }
 
     public void damage(double value, MovableObject source) {
@@ -84,12 +85,8 @@ public class Unit implements MovableObject {
         System.out.println(this.toString() + " was damaged by " + source);
 
     }
-//
-//    public void verticalHalt() {
-//        this.velocity.set(this.velocity.getX(), 0, this.velocity.getZ());
-//    }
-//
-//    public void horizontalHalt() {
-//        this.velocity.set(0, this.velocity.getY(), this.velocity.getZ());
-//    }
+
+    public int getHealth() {
+        return health;
+    }
 }

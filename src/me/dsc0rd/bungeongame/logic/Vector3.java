@@ -78,24 +78,33 @@ public class Vector3 {
         return this;
     }
 
+    public Vector3 diff(Vector3 target) {
+
+        return target.sub(this).abs();
+    }
+
+    public Vector3 abs() {
+        return new Vector3(Math.abs(this.x), Math.abs(this.y), Math.abs(this.z));
+    }
+
     public double getX() {
         return x;
-    }
-
-    public double getY() {
-        return y;
-    }
-
-    public double getZ() {
-        return z;
     }
 
     public void setX(double x) {
         this.x = x;
     }
 
+    public double getY() {
+        return y;
+    }
+
     public void setY(double y) {
         this.y = y;
+    }
+
+    public double getZ() {
+        return z;
     }
 
     public void setZ(double z) {
@@ -142,5 +151,9 @@ public class Vector3 {
 
     public double angleFromPoint(double x, double y) {
         return MathUtils.getAngleOfLineBetweenTwoPoints(x, y, this.x, this.y);
+    }
+
+    public Vector3 copy() {
+        return new Vector3(this.x, this.y, this.z);
     }
 }

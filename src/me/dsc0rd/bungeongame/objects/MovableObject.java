@@ -11,6 +11,8 @@ public interface MovableObject {
 
     Vector3 getVelocity();
 
+    Vector3 getDimensions();
+
     boolean isColliding(MovableObject o);
 
     double getRadius();

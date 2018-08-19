@@ -2,32 +2,39 @@ package me.dsc0rd.bungeongame.states;
 
 import me.dsc0rd.bungeongame.Main;
 import me.dsc0rd.bungeongame.logic.EventEnum;
+import me.dsc0rd.bungeongame.media.ResourceManager;
 import me.dsc0rd.bungeongame.objects.Camera;
-import me.dsc0rd.bungeongame.objects.Items.weapons.BasicWeapon;
+import me.dsc0rd.bungeongame.objects.Items.weapons.ProjectileBasedWeapon;
 import me.dsc0rd.bungeongame.objects.Player;
 import me.dsc0rd.bungeongame.objects.Unit;
 import me.dsc0rd.bungeongame.objects.enviroment.Level;
 import org.newdawn.slick.*;
+import org.newdawn.slick.geom.Rectangle;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 
+import java.io.IOException;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+
 public class GameplayState extends BasicGameState {
-    public static CopyOnWriteArrayList<BasicWeapon.Bullet> bullets = new CopyOnWriteArrayList<>();
+    public static CopyOnWriteArrayList<ProjectileBasedWeapon.Projectile> bullets = new CopyOnWriteArrayList<>();
     public static CopyOnWriteArrayList<Unit> units = new CopyOnWriteArrayList<>();
     public static GameContainer gc;
     boolean paused = false;
     String dt = "";
     private Level level;
-    private Player player = new Player(500, 400, 0.1, 1.6);
-    private Unit dummy = new Unit(80, 200, 400, 0.1, 20);
+    private Player player = new Player(500, 400, 0.1, 2);
     private Camera camera = new Camera(player);
     private int ID;
-
+    private Unit enemy;
 
     public GameplayState(int ID) {
         this.ID = ID;
+    }
+
+    public Level getLevel() {
+        return level;
     }
 
     @Override
@@ -37,13 +44,18 @@ public class GameplayState extends BasicGameState {
 
     @Override
     public void init(GameContainer container, StateBasedGame game) throws SlickException {
+        try {
+            Main.resourceManager = new ResourceManager();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         gc = container;
         container.getGraphics().setAntiAlias(false);
         player.init();
         bullets.clear();
+        enemy = new Unit(2000, 480, 480, 1, 16);
 
-
-        level = new Level(4, 4);
+        level = new Level(12, 14);
     }
 
     @Override
@@ -55,17 +67,17 @@ public class GameplayState extends BasicGameState {
         for (Unit u : units) {
             u.render(g);
         }
-        for (BasicWeapon.Bullet b : bullets) {
+        for (ProjectileBasedWeapon.Projectile b : bullets) {
             b.render(g);
         }
         g.popTransform();
-
         renderInterface(g);
     }
 
     @Override
     public void update(GameContainer container, StateBasedGame game, int delta) throws SlickException {
-        level.update((float) (delta / 1000));
+        checkCollisions();
+        level.update((float) delta / 1000);
         camera.update((float) delta / 1000, container.getInput());
         dt = String.valueOf((float) delta / 1000);
         if (paused)
@@ -74,14 +86,12 @@ public class GameplayState extends BasicGameState {
             for (Unit u : units) {
                 u.update((float) delta / 1000);
             }
-            for (BasicWeapon.Bullet b : bullets) {
+            for (ProjectileBasedWeapon.Projectile b : bullets) {
                 b.update((float) delta / 1000);
             }
         } catch (CloneNotSupportedException e) {
             e.printStackTrace();
         }
-        checkCollisions();
-
     }
 
     @Override
@@ -90,23 +100,21 @@ public class GameplayState extends BasicGameState {
             case Input.KEY_ESCAPE:
                 paused = !paused;
                 break;
+            case Input.KEY_F1:
+                Main.debug = !Main.debug;
+                break;
+            case Input.KEY_P:
+                player.damage(1, player);
+                break;
+            case Input.KEY_O:
+                player.damage(-1, player);
         }
         player.acceptInput(key, c, 0);
-
     }
 
     @Override
     public void keyReleased(int key, char c) {
         player.acceptInput(key, c, 1);
-    }
-
-    @Override
-    public void mouseClicked(int button, int x, int y, int clickCount) {
-//        try {
-////            player.acceptMouseInput(button, x, y, clickCount);
-//        } catch (CloneNotSupportedException e) {
-//            e.printStackTrace();
-//        }
     }
 
     @Override
@@ -127,10 +135,10 @@ public class GameplayState extends BasicGameState {
     }
 
     public void checkCollisions() {
-        for (BasicWeapon.Bullet b : bullets) {
-            for (Unit u : units) {
+        for (Unit u : units) {
+            for (ProjectileBasedWeapon.Projectile b : bullets) {
                 if (b.owner(u)) {
-                    continue;
+                    break;
                 }
                 if (b.isColliding(u)) {
                     u.damage(b.getDamage(), b);
@@ -141,18 +149,11 @@ public class GameplayState extends BasicGameState {
     }
 
 
-    public void checkCollision(BasicWeapon.Bullet b) {
-    }
-
-    public void checkCollision(Unit u) {
-
-    }
-
     public void renderInterface(Graphics g) {
         if (Main.debug) {
             g.setColor(Color.white);
             g.drawString(dt, 600, 20);
-            g.drawString("" + player.getAngle(), 800, 20);
+            g.drawString("" + Math.abs(180 - Math.toDegrees(player.getAngle())), 800, 20);
             g.drawString("" + player.getPosition().getX(), 800, 40);
             g.drawString("" + player.getPosition().getY(), 800, 60);
             g.drawString("" + player.getVelocity().getX(), 800, 80);
@@ -163,5 +164,31 @@ public class GameplayState extends BasicGameState {
         g.drawString(player.getCurrentWeapon().getClipAmmo() + "/" + player.getCurrentWeapon().getClipMaxAmmo(), 1800, 720);
         g.drawString(player.getCurrentWeapon().getAmmo() + "/" + player.getCurrentWeapon().getMaxAmmo(), 1800, 740);
         g.drawString(player.getCurrentWeapon().getReloadTimer() + "/" + player.getCurrentWeapon().getReloadTime(), 1800, 760);
+        g.fillRect(40, 40, 180, 30);
+        g.setColor(Color.white);
+//        if (paused) {
+//            g.fillRect(0,0,);
+        if (player.getHealth() <= 2) {
+            if (player.getHealth() <= 0)
+                return;
+            g.texture(new Rectangle(40, 40, 30, 30), player.getHealth() != 1 ? Main.resourceManager.halfHeartImage : Main.resourceManager.fullHeartImage, true);
+        } else {
+            if (player.getHealth() % 2 == 0) {
+                for (int i = 0; i < player.getHealth() / 2; i++) {
+                    g.texture(new Rectangle(40 + (40 * i), 40, 30, 30), Main.resourceManager.fullHeartImage, true);
+                }
+            } else {
+                int j = 0;
+                for (int i = 0; i < (player.getHealth() - 1) / 2; i++) {
+                    j++;
+                    g.setColor(Color.white);
+                    g.texture(new Rectangle(40 + (40 * i), 40, 30, 30), Main.resourceManager.fullHeartImage, true);
+                }
+                g.texture(new Rectangle(40 + (40 * j + 1), 40, 30, 30), Main.resourceManager.halfHeartImage, true);
+            }
+        }
+
+
     }
 }
+

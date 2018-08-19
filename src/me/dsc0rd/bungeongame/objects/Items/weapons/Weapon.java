@@ -67,5 +67,7 @@ public interface Weapon {
 
     double getShotTimer();
 
+    boolean isReloading();
+
 
 }
