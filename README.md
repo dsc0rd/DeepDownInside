@@ -2,6 +2,5 @@
 
 A game made to be a clone of "Enter The Gungeon" by Dodge Roll with some changes to my tastes.
 
-
-Still in its infant state.
+Currently abandoned, feel free to fork and use for your own dirty pleasure.
 
